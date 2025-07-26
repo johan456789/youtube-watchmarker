@@ -1,15 +1,12 @@
 "use strict";
 
 import {
-  getBrowserType,
   sendMessageToTab,
   createResponseCallback,
   getStorageAsync,
   setStorageAsync,
   setDefaultInStorageIfNull,
   AsyncSeries,
-  // Legacy compatibility
-  Node,
 } from "./utils.js";
 
 import { Database } from "./bg-database.js";
@@ -38,10 +35,10 @@ class ExtensionManager {
       await AsyncSeries.run(
         {
           settings: this.initializeSettings.bind(this),
-          database: this.moduleInitializer(Database.init),
-          history: this.moduleInitializer(History.init),
-          youtube: this.moduleInitializer(Youtube.init),
-          search: this.moduleInitializer(Search.init),
+          database: this.moduleInitializer(Database.init.bind(Database)),
+          history: this.moduleInitializer(History.init.bind(History)),
+          youtube: this.moduleInitializer(Youtube.init.bind(Youtube)),
+          search: this.moduleInitializer(Search.init.bind(Search)),
           action: this.setupActionHandler.bind(this),
           message: this.setupMessageHandler.bind(this),
           tabHook: this.setupTabHook.bind(this),
