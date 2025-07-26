@@ -1,14 +1,14 @@
 import {
-  Node,
   createResponseCallback,
   funcHackyparse,
   bgObject,
+  AsyncSeries
 } from "./utils.js";
 
 export const Youtube = {
   init: function (objRequest, funcResponse) {
     console.log("Youtube.init called");
-    Node.series(
+    AsyncSeries.run(
       {
         objMessaging: bgObject.messaging('youtube', {
           'youtubeSynchronize': Youtube.synchronize,
@@ -22,7 +22,7 @@ export const Youtube = {
   },
 
   synchronize: function (objRequest, funcResponse, funcProgress) {
-    Node.series(
+    AsyncSeries.run(
       {
         objCookies: bgObject.cookies(),
         objContauth: bgObject.contauth(),
@@ -220,7 +220,7 @@ export const Youtube = {
   },
 
   lookup: function (objRequest, funcResponse) {
-    Node.series(
+    AsyncSeries.run(
       {
         objVideo: function (objArgs, funcCallback) {
           return funcCallback(objRequest);
@@ -251,7 +251,7 @@ export const Youtube = {
   },
 
   ensure: function (objRequest, funcResponse) {
-    Node.series(
+    AsyncSeries.run(
       {
         objVideo: function (objArgs, funcCallback) {
           return funcCallback(objRequest);
@@ -284,7 +284,7 @@ export const Youtube = {
   },
 
   mark: function (objRequest, funcResponse) {
-    Node.series(
+    AsyncSeries.run(
       {
         objVideo: function (objArgs, funcCallback) {
           return funcCallback(objRequest);

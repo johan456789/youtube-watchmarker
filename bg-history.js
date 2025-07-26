@@ -1,14 +1,14 @@
 import {
-  Node,
   createResponseCallback,
-  bgObject
+  bgObject,
+  AsyncSeries
 } from "./utils.js";
 import { Database } from "./bg-database.js";
 
 export const History = {
   init: function (objRequest, funcResponse) {
     console.log("History.init called");
-    Node.series(
+    AsyncSeries.run(
       {
         objMessaging: bgObject.messaging('history', { 'historySynchronize': History.synchronize }),
       },
@@ -17,7 +17,7 @@ export const History = {
   },
 
   synchronize: function (objRequest, funcResponse, funcProgress) {
-    Node.series(
+    AsyncSeries.run(
       {
         objVideos: function (objArgs, funcCallback) {
           chrome.history.search(

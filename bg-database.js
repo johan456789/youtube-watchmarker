@@ -2,8 +2,6 @@ import {
   AsyncSeries,
   createResponseCallback,
   BackgroundUtils,
-  // Legacy compatibility
-  Node,
   bgObject
 } from "./utils.js";
 

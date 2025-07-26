@@ -1,15 +1,15 @@
 import {
-  Node,
   createResponseCallback,
   funcHackyparse,
   bgObject,
+  AsyncSeries
 } from "./utils.js";
 import { Database } from "./bg-database.js";
 
 export const Search = {
   init: function (objRequest, funcResponse) {
     console.log("Search.init called");
-    Node.series(
+    AsyncSeries.run(
       {
         objMessaging: bgObject.messaging('search', {
           'searchLookup': Search.lookup,
@@ -21,7 +21,7 @@ export const Search = {
   },
 
   lookup: function (objRequest, funcResponse) {
-    Node.series(
+    AsyncSeries.run(
       {
         objDatabase: bgObject.database(),
         objGet: function (objArgs, funcCallback) {
@@ -70,7 +70,7 @@ export const Search = {
   },
 
   delete: function (objRequest, funcResponse, funcProgress) {
-    Node.series(
+    AsyncSeries.run(
       {
         objDatabase: bgObject.database(),
         objDelete: function (objArgs, funcCallback) {
