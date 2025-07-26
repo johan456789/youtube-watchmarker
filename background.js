@@ -176,34 +176,106 @@ class ExtensionManager {
   setupMessageHandler(args, callback) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       try {
-        const { strMessage: messageType, strIdent: videoId, strTitle: title } = request;
-        
-        const messageRequest = { strIdent: videoId, strTitle: title };
+        const { action, videoId, title, query, data } = request;
         
         const responseHandler = (response) => {
-          console.debug(messageType, request, response);
+          console.debug(action, request, response);
           sendResponse(response);
         };
 
-        const youtubeActions = {
-          "youtube-lookup": Youtube.lookup,
-          "youtube-ensure": Youtube.ensure,
+        const actionHandlers = {
+          // YouTube actions
+          "youtube-lookup": (req, res) => {
+            const messageRequest = { strIdent: req.videoId, strTitle: req.title };
+            if (req.title) {
+              this.titleCache.set(req.videoId, req.title);
+            }
+            Youtube.lookup(messageRequest, res);
+          },
+          "youtube-ensure": (req, res) => {
+            const messageRequest = { strIdent: req.videoId, strTitle: req.title };
+            if (req.title) {
+              this.titleCache.set(req.videoId, req.title);
+            }
+            Youtube.ensure(messageRequest, res);
+          },
+          
+          // Database actions
+          "database-export": (req, res) => {
+            this.exportDatabaseData(res);
+          },
+          "database-import": (req, res) => {
+            Database.import({ objVideos: JSON.parse(req.data) }, (response) => {
+              if (response) {
+                res({ success: true });
+              } else {
+                res({ success: false, error: "Import failed" });
+              }
+            });
+          },
+          "database-reset": (req, res) => {
+            Database.reset({}, (response) => {
+              if (response) {
+                res({ success: true });
+              } else {
+                res({ success: false, error: "Reset failed" });
+              }
+            });
+          },
+          "database-size": (req, res) => {
+            this.getDatabaseSize(res);
+          },
+          
+          // Search actions
+          "search-videos": (req, res) => {
+            const searchRequest = { 
+              strQuery: req.query, 
+              intSkip: 0, 
+              intLength: 50 
+            };
+            Search.lookup(searchRequest, (response) => {
+              if (response && response.objVideos) {
+                const results = response.objVideos.map(video => ({
+                  id: video.strIdent,
+                  title: video.strTitle,
+                  timestamp: video.intTimestamp,
+                  count: video.intCount
+                }));
+                res({ success: true, results });
+              } else {
+                res({ success: false, results: [] });
+              }
+            });
+          },
+          
+          // Timestamp actions
+          "history-timestamp": (req, res) => {
+            this.getHistoryTimestamp(res);
+          },
+          "youtube-timestamp": (req, res) => {
+            this.getYoutubeTimestamp(res);
+          },
+          
+          // Synchronization actions
+          "history-synchronize": (req, res) => {
+            this.synchronizeHistoryAction(res);
+          },
+          "youtube-synchronize": (req, res) => {
+            this.synchronizeYoutubeAction(res);
+          }
         };
 
-        const action = youtubeActions[messageType];
-        if (action) {
-          if (title) {
-            this.titleCache.set(videoId, title);
-          }
-          action(messageRequest, responseHandler);
+        const handler = actionHandlers[action];
+        if (handler) {
+          handler(request, responseHandler);
           return true; // Indicate asynchronous response
         } else {
-          console.warn("Unknown message type:", messageType);
-          sendResponse(null);
+          console.warn("Unknown action:", action);
+          sendResponse({ success: false, error: "Unknown action" });
         }
       } catch (error) {
         console.error("Error handling message:", error);
-        sendResponse(null);
+        sendResponse({ success: false, error: error.message });
       }
     });
 
@@ -324,11 +396,11 @@ class ExtensionManager {
         (tabs) => {
           tabs.forEach(tab => {
             sendMessageToTab(tab.id, {
-              strMessage: "youtube-mark",
-              strIdent: videoId,
-              intTimestamp: 0,
-              strTitle: title,
-              intCount: 0,
+              action: "youtube-mark",
+              videoId: videoId,
+              timestamp: 0,
+              title: title,
+              count: 0,
             });
           });
           resolve();
@@ -495,6 +567,107 @@ class ExtensionManager {
         }
       );
     });
+  }
+
+  /**
+   * Get database size
+   * @param {Function} callback - Response callback
+   */
+  async getDatabaseSize(callback) {
+    try {
+      const size = await getStorageAsync("extensions.Youwatch.Database.intSize");
+      callback({ success: true, size: size || "0" });
+    } catch (error) {
+      console.error("Error getting database size:", error);
+      callback({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Get history timestamp
+   * @param {Function} callback - Response callback
+   */
+  async getHistoryTimestamp(callback) {
+    try {
+      const timestamp = await getStorageAsync("extensions.Youwatch.History.intTimestamp");
+      callback({ success: true, timestamp: timestamp ? parseInt(timestamp) : null });
+    } catch (error) {
+      console.error("Error getting history timestamp:", error);
+      callback({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Get YouTube timestamp
+   * @param {Function} callback - Response callback
+   */
+  async getYoutubeTimestamp(callback) {
+    try {
+      const timestamp = await getStorageAsync("extensions.Youwatch.Youtube.intTimestamp");
+      callback({ success: true, timestamp: timestamp ? parseInt(timestamp) : null });
+    } catch (error) {
+      console.error("Error getting YouTube timestamp:", error);
+      callback({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Export database data for options page
+   * @param {Function} callback - Response callback
+   */
+  async exportDatabaseData(callback) {
+    try {
+      // Get database connection
+      const Database = globalThis.Database;
+      if (!Database || !Database.database) {
+        callback({ success: false, error: "Database not initialized" });
+        return;
+      }
+
+      const store = Database.getObjectStore("readonly");
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const data = JSON.stringify(request.result);
+        callback({ success: true, data: data });
+      };
+
+      request.onerror = () => {
+        console.error("Failed to export database:", request.error);
+        callback({ success: false, error: "Failed to export database" });
+      };
+    } catch (error) {
+      console.error("Error exporting database:", error);
+      callback({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Synchronize history action for options page
+   * @param {Function} callback - Response callback
+   */
+  async synchronizeHistoryAction(callback) {
+    try {
+      const response = await this.syncHistory();
+      callback({ success: true, response: response });
+    } catch (error) {
+      console.error("Error synchronizing history:", error);
+      callback({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Synchronize YouTube action for options page
+   * @param {Function} callback - Response callback
+   */
+  async synchronizeYoutubeAction(callback) {
+    try {
+      const response = await this.syncYoutube();
+      callback({ success: true, response: response });
+    } catch (error) {
+      console.error("Error synchronizing YouTube:", error);
+      callback({ success: false, error: error.message });
+    }
   }
 }
 
