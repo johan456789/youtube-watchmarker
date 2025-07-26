@@ -1,16 +1,15 @@
 import {
   createResponseCallback,
-  bgObject,
+  BackgroundUtils,
   AsyncSeries
 } from "./utils.js";
-import { Database } from "./bg-database.js";
 
 export const History = {
   init: function (objRequest, funcResponse) {
     console.log("History.init called");
     AsyncSeries.run(
       {
-        objMessaging: bgObject.messaging('history', { 'historySynchronize': History.synchronize }),
+        objMessaging: BackgroundUtils.messaging('history', { 'historySynchronize': History.synchronize }),
       },
       createResponseCallback(() => { }, funcResponse),
     );
@@ -61,13 +60,13 @@ export const History = {
             },
           );
         },
-        objDatabase: bgObject.database(),
-        objVideo: bgObject.video(),
-        objGet: bgObject.get(funcProgress),
-        objPut: bgObject.put(),
-        "objVideo-Next": bgObject.videoNext(),
-        objCount: bgObject.count(),
-        objTime: bgObject.time("extensions.Youwatch.History.intTimestamp"),
+        objDatabase: BackgroundUtils.database(),
+        objVideo: BackgroundUtils.video(),
+        objGet: BackgroundUtils.get(funcProgress),
+        objPut: BackgroundUtils.put(),
+        "objVideo-Next": BackgroundUtils.videoNext(),
+        objCount: BackgroundUtils.count(),
+        objTime: BackgroundUtils.time("extensions.Youwatch.History.intTimestamp"),
       },
       createResponseCallback(() => { }, funcResponse),
     );

@@ -2,7 +2,6 @@ import {
   AsyncSeries,
   createResponseCallback,
   BackgroundUtils,
-  bgObject
 } from "./utils.js";
 
 /**
