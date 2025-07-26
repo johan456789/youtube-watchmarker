@@ -9,7 +9,7 @@ export const History = {
     console.log("History.init called");
     AsyncSeries.run(
       {
-        objMessaging: BackgroundUtils.messaging('history', { 'historySynchronize': History.synchronize }),
+        objMessaging: BackgroundUtils.messaging('history', { 'history-synchronize': History.synchronize }),
       },
       createResponseCallback(() => { }, funcResponse),
     );

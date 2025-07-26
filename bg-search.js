@@ -11,8 +11,8 @@ export const Search = {
     AsyncSeries.run(
       {
         objMessaging: BackgroundUtils.messaging('search', {
-          'searchLookup': Search.lookup,
-          'searchDelete': Search.delete
+          'search-lookup': Search.lookup,
+          'search-delete': Search.delete
         }),
       },
       createResponseCallback(() => { }, funcResponse),

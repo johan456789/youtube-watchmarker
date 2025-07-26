@@ -200,7 +200,7 @@ class YouTubeWatchMarker {
     
     chrome.runtime.sendMessage(
       {
-        strMessage: "youtubeLookup",
+        strMessage: "youtube-lookup",
         strIdent: videoId,
         strTitle: title,
       },
@@ -276,11 +276,11 @@ class YouTubeWatchMarker {
   handleMessage(data, sender, sendResponse) {
     try {
       switch (data.strMessage) {
-        case "youtubeRefresh":
+        case "youtube-refresh":
           this.refresh();
           break;
           
-        case "youtubeMark":
+        case "youtube-mark":
           this.watchDates[data.strIdent] = data.intTimestamp;
           const videos = this.findVideos(data.strIdent);
           videos.forEach(video => this.markVideo(video, data.strIdent));

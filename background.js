@@ -186,8 +186,8 @@ class ExtensionManager {
         };
 
         const youtubeActions = {
-          "youtubeLookup": Youtube.lookup,
-          "youtubeEnsure": Youtube.ensure,
+          "youtube-lookup": Youtube.lookup,
+          "youtube-ensure": Youtube.ensure,
         };
 
         const action = youtubeActions[messageType];
@@ -324,7 +324,7 @@ class ExtensionManager {
         (tabs) => {
           tabs.forEach(tab => {
             sendMessageToTab(tab.id, {
-              strMessage: "youtubeMark",
+              strMessage: "youtube-mark",
               strIdent: videoId,
               intTimestamp: 0,
               strTitle: title,

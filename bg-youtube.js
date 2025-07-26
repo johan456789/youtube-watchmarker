@@ -11,10 +11,10 @@ export const Youtube = {
     AsyncSeries.run(
       {
         objMessaging: BackgroundUtils.messaging('youtube', {
-          'youtubeSynchronize': Youtube.synchronize,
-          'youtubeLookup': Youtube.lookup,
-          'youtubeEnsure': Youtube.ensure,
-          'youtubeMark': Youtube.mark
+          'youtube-synchronize': Youtube.synchronize,
+          'youtube-lookup': Youtube.lookup,
+          'youtube-ensure': Youtube.ensure,
+          'youtube-mark': Youtube.mark
         }),
       },
       createResponseCallback(() => { }, funcResponse),

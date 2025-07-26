@@ -28,9 +28,9 @@ export class DatabaseManager {
         {
           openDatabase: this.openDatabase.bind(this),
           setupMessaging: BackgroundUtils.messaging('database', {
-            'databaseExport': this.export.bind(this),
-            'databaseImport': this.import.bind(this),
-            'databaseReset': this.reset.bind(this)
+            'database-export': this.export.bind(this),
+            'database-import': this.import.bind(this),
+            'database-reset': this.reset.bind(this)
           }),
         },
         createResponseCallback(() => ({}), response)
