@@ -8,9 +8,11 @@ let objObservers = new WeakMap();
 
 let videos = function(strIdent) {
     return Array.from(window.document.querySelectorAll(([
+        'a.ytLockupViewModelContentImage[href^="/watch?v=' + strIdent + '"]', // new - https://github.com/sniklaus/youtube-watchmarker/issues/195
         'a.yt-lockup-view-model__content-image[href^="/watch?v=' + strIdent + '"]', // regular
         'a.ytd-thumbnail[href^="/watch?v=' + strIdent + '"]', // list
         'a.reel-item-endpoint[href^="/shorts/' + strIdent + '"]', // shorts
+        'a.ytp-modern-videowall-still[href*="/watch?v=' + strIdent + '"]', // videowall
         'a.ytp-videowall-still[href*="/watch?v=' + strIdent + '"]', // videowall
         'a.ytp-ce-covering-overlay[href*="/watch?v=' + strIdent + '"]', // overlays
         'a.media-item-thumbnail-container[href*="/watch?v=' + strIdent + '"]', // mobile
