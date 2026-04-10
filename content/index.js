@@ -388,6 +388,39 @@ jQuery(window.document).ready(async function() {
         .end()
     ;
 
+    jQuery('#idCondition_Youprog')
+        .on('click', async function() {
+            await funcStorageset('extensions.Youwatch.Condition.boolYouprog', await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === String(false));
+
+            jQuery(this)
+                .find('i')
+                    .eq(0)
+                        .css({
+                            'display': await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === String(true) ? 'none' : 'block',
+                        })
+                    .end()
+                    .eq(1)
+                        .css({
+                            'display': await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === String(true) ? 'block' : 'none',
+                        })
+                    .end()
+                .end()
+            ;
+        })
+        .find('i')
+            .eq(0)
+                .css({
+                    'display': await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === String(true) ? 'none' : 'block',
+                })
+            .end()
+            .eq(1)
+                .css({
+                    'display': await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === String(true) ? 'block' : 'none',
+                })
+            .end()
+        .end()
+    ;
+
     jQuery('#idCondition_Youbadge')
         .on('click', async function() {
             await funcStorageset('extensions.Youwatch.Condition.boolYoubadge', await funcStorageget('extensions.Youwatch.Condition.boolYoubadge') === String(false));

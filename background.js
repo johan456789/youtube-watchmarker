@@ -1103,6 +1103,10 @@ let Search = {
         await funcStorageset('extensions.Youwatch.Condition.boolBrowhist', true);
     }
 
+    if (await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === null) {
+        await funcStorageset('extensions.Youwatch.Condition.boolYouprog', true);
+    }
+
     if (await funcStorageget('extensions.Youwatch.Condition.boolYoubadge') === null) {
         await funcStorageset('extensions.Youwatch.Condition.boolYoubadge', true);
     }
@@ -1283,6 +1287,53 @@ let Search = {
                 css: await funcStorageget('extensions.Youwatch.Stylesheet.strHideprogress'),
             });
         }
+    });
+
+    chrome.webRequest.onBeforeRequest.addListener(async function(objData) { // does not seem to get triggered in firefox so we need to revisit this at some point
+        if (await funcStorageget('extensions.Youwatch.Condition.boolYouprog') === String(true)) {
+            if (objData.url.indexOf('muted=1') !== -1) {
+                return;
+            }
+
+            for (let strElapsed of objData.url.split('&et=')[1].split('&')[0].split(',')) {
+                if (parseFloat(strElapsed) < 3.0) {
+                    continue;
+                }
+
+                let strIdent = objData.url.split('&docid=')[1].split('&')[0];
+                let strTitle = Youtube.strTitlecache.hasOwnProperty(strIdent) === true ? Youtube.strTitlecache[strIdent] : '';
+
+                if (strIdent.length !== 11) {
+                    continue;
+
+                } else if (strTitle === '') {
+                    continue;
+
+                }
+
+                await Youtube.mark({
+                    'strIdent': strIdent,
+                    'strTitle': strTitle,
+                    'boolEnsure': true,
+                });
+
+                chrome.tabs.query({
+                    'url': '*://*.youtube.com/*'
+                }, function(objTabs) {
+                    for (let objTab of objTabs) {
+                        chrome.tabs.sendMessage(objTab.id, {
+                            'strMessage': 'youtubeMark',
+                            'strIdent': strIdent,
+                            'intTimestamp': 0,
+                            'strTitle': strTitle,
+                            'intCount': 0,
+                        });
+                    }
+                });
+            }
+        }
+    }, {
+        urls: ['https://www.youtube.com/api/stats/watchtime*']
     });
 
     chrome.declarativeNetRequest.updateDynamicRules({

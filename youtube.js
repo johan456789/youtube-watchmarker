@@ -9,7 +9,7 @@ let objObservers = new WeakMap();
 let videos = function(strIdent) {
     return Array.from(window.document.querySelectorAll(([
         'a.ytLockupViewModelContentImage[href^="/watch?v=' + strIdent + '"]', // new - https://github.com/sniklaus/youtube-watchmarker/issues/195
-        'a.yt-lockup-view-model__content-image[href^="/watch?v=' + strIdent + '"]', // regular
+        'a.yt-lockup-view-model__content-image[href^="/watch?v=' + strIdent + '"]', // old
         'a.ytd-thumbnail[href^="/watch?v=' + strIdent + '"]', // list
         'a.reel-item-endpoint[href^="/shorts/' + strIdent + '"]', // shorts
         'a.ytp-modern-videowall-still[href*="/watch?v=' + strIdent + '"]', // videowall
@@ -36,8 +36,12 @@ let refresh = async function() {
         }
 
         for (let intTitle = 0, objTitle = objVideo.parentNode; intTitle < 5; intTitle += 1, objTitle = objTitle.parentNode) {
-            if (objTitle.querySelector('#video-title') !== null) {
+            if (objTitle.querySelector('.ytLockupMetadataViewModelTitle') !== null) { // new
+                strTitle = objTitle.querySelector('.ytLockupMetadataViewModelTitle').innerText.trim(); break;
+
+            } else if (objTitle.querySelector('#video-title') !== null) { // old
                 strTitle = objTitle.querySelector('#video-title').innerText.trim(); break;
+
             }
         }
 
