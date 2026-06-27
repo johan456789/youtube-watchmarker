@@ -16,6 +16,26 @@ let funcStorageset = async function(strKey, objValue) {
      await chrome.storage.local.set({ [strKey]: String(objValue) });
 };
 
+let objPendingtitles = {};
+
+let funcIsunstabletitle = function(strTitle) {
+    if ((strTitle === undefined) || (strTitle === null)) {
+        return true;
+    }
+
+    strTitle = String(strTitle).trim();
+
+    if (strTitle.length < 2) {
+        return true;
+
+    } else if (strTitle.toLowerCase() === 'youtube') {
+        return true;
+
+    }
+
+    return false;
+};
+
 let funcYoufetch = async function(strLink, objPayload, objContext, strClicktrack) {
     let funcCookie = async function(strCookie) {
         let objCookie = await chrome.cookies.get({
@@ -837,7 +857,18 @@ let Youtube = {
 
         } else if ((objGet !== undefined) && (objGet !== null)) {
             intTimestamp = objGet.intTimestamp || intTimestamp || new Date().getTime();
-            strTitle = objGet.strTitle || strTitle || '';
+
+            if ((funcIsunstabletitle(objGet.strTitle) === false) && (objGet.strTitle !== '')) {
+                strTitle = objGet.strTitle;
+
+            } else if ((funcIsunstabletitle(strTitle) === false) && (strTitle !== '')) {
+                // keep the newly provided stable title
+
+            } else {
+                strTitle = objGet.strTitle || strTitle || '';
+
+            }
+
             intCount = objGet.intCount || intCount || 1;
 
             if ((strIdent.trim() === '') || (strTitle.trim() === '')) {
@@ -1231,24 +1262,54 @@ let Search = {
                         strTitle = strTitle.slice(0, -10);
                     }
 
-                    await Youtube.mark({
+                    if (objPendingtitles[objTab.id] !== undefined) {
+                        clearTimeout(objPendingtitles[objTab.id].intTimer);
+                    }
+
+                    objPendingtitles[objTab.id] = {
                         'strIdent': strIdent,
                         'strTitle': strTitle,
-                    });
+                        'intTimer': setTimeout(async function() {
+                            delete objPendingtitles[objTab.id];
 
-                    chrome.tabs.query({
-                        'url': '*://*.youtube.com/*'
-                    }, function(objTabs) {
-                        for (let objTab of objTabs) {
-                            chrome.tabs.sendMessage(objTab.id, {
-                                'strMessage': 'youtubeMark',
+                            let objUpdatedtab = null;
+
+                            try {
+                                objUpdatedtab = await chrome.tabs.get(objTab.id);
+                            } catch (objError) {
+                                return;
+                            }
+
+                            if ((objUpdatedtab === undefined) || (objUpdatedtab === null)) {
+                                return;
+                            }
+
+                            let strUpdatedtitle = objUpdatedtab.title || '';
+
+                            if (strUpdatedtitle.slice(-10) === ' - YouTube') {
+                                strUpdatedtitle = strUpdatedtitle.slice(0, -10);
+                            }
+
+                            await Youtube.mark({
                                 'strIdent': strIdent,
-                                'intTimestamp': 0,
-                                'strTitle': strTitle,
-                                'intCount': 0,
+                                'strTitle': strUpdatedtitle,
                             });
-                        }
-                    });
+
+                            chrome.tabs.query({
+                                'url': '*://*.youtube.com/*'
+                            }, function(objTabs) {
+                                for (let objTab of objTabs) {
+                                    chrome.tabs.sendMessage(objTab.id, {
+                                        'strMessage': 'youtubeMark',
+                                        'strIdent': strIdent,
+                                        'intTimestamp': 0,
+                                        'strTitle': strUpdatedtitle,
+                                        'intCount': 0,
+                                    });
+                                }
+                            });
+                        }, 1000)
+                    };
                 }
             }
         }
